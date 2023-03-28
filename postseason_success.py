@@ -6,14 +6,15 @@ Created on Wed Mar 15 16:30:43 2023
 @author: mhaynam
 """
 
+# from itertools import product 
 import numpy as np
 import pandas as pd
-# import pyodbc
+from iso3166 import countries
 from sqlalchemy.engine import URL
-import seaborn as sns
+# import seaborn as sns
 import matplotlib.pyplot as plt 
 import matplotlib.image as mpimg
-plt.rc("font", size=10)
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
 conn = "Driver={ODBC Driver 18 for SQL Server};Server=localhost;Database=master;UID=SA;PWD=####;TrustServerCertificate=yes;"
 conn_url = URL.create("mssql+pyodbc", query={"odbc_connect": conn})          
@@ -130,50 +131,79 @@ df["order_attendance"] = df.groupby("yearID")["attendance"].rank(method="min", a
 df_total_post = df.groupby("franchID", as_index=False)[["post_birth", "win_lg", "win_ws"]].sum()
 df_total_post = df_total_post.sort_values(by=["post_birth"], ascending=False)
 
-print(df_total_post)
+# print(df_total_post)
 
-plt.bar(df_total_post.franchID, df_total_post.post_birth, color=df_total_post['franchID'].map(team_colors))
+
 
 # def pos_image(x, y, teams, haut):
-#     teams = df_total_post['franchID']
+#     # teams = df_total_post.franchID
 #     folder = "/Users/mhaynam/ds_portfolio/baseball_stat/"
-#     img = folder + 
-#     im = mpimg.imread(folder)
+#     img = folder + teams + '.png'
+#     im = mpimg.imread(img)
 #     ratio = 4 / 3
 #     w = ratio * haut
 #     ax.imshow(im,
 #               extent=(x - w, x, y, y + haut),
 #               zorder=2)
+    
+# plt.style.use('seaborn')
+# fig, ax = plt.subplots()
 
-# teams = df_total_post['franchID']
-# y = df_total_post['post_birth']
-# folder = "/Users/mhaynam/ds_portfolio/baseball_stat/"
-# haut = 0.5
-# for t in range(teams):
-#     img = folder + t + '.png'
-#     im = mpimg.imread(img)
-#     ratio = 4 / 3
-#     w = ratio
-#     plt.imshow(im, extent=(teams[t+1], y[t], teams[t], haut), zorder=2)
+# X = list(df_total_post['post_birth'])
+# Y = list(df_total_post['franchID'])
+# list_teams = list(zip(Y, X))
+# haut = 0.8
+# r = ax.barh(y=Y, width=X, height=haut, zorder=1) #, color=df_total_post['franchID'].map(team_colors))
+
+# y_bar = [rectangle.get_y() for rectangle in r]
+# y_bar.reverse()
+# for teams, y in zip(list_teams, y_bar):
+#     pos_image(teams[1], y, teams[0], haut)
+
+# plt.title('Postseason Births Since 1980')
+# plt.ylabel("Team")
+# plt.xlabel('Postseason Births')
+# plt.xticks(rotation=90)
+# plt.show()
+
+# y_bar = [rectangle.get_y() for rectangle in r]
+# y_bar.reverse()
+# p = list(zip(list_teams, y_bar))
+# print(p)
+
+# pays = countries.get(pays).alpha2.lower()
+# print(pays)
+
+def offset_image(x, y, label, bar_is_too_short, ax):
+    # response = requests.get(f'https://www.countryflags.io/{label}/flat/64.png')
+    file = f"/Users/mhaynam/ds_portfolio/baseball_stat/{label}.png"
+    img = plt.imread(file)
+    im = OffsetImage(img, zoom=0.06)
+    im.image.axes = ax
+    x_offset = 0
+    if bar_is_too_short:
+        x = 0
+    ab = AnnotationBbox(im, (x, y), xybox=(x_offset, 0), frameon=False,
+                        xycoords='data', boxcoords="offset points", pad=0)
+    ax.add_artist(ab)
+
+labels = list(df_total_post['franchID'])
+# colors = ['crimson', 'dodgerblue', 'teal', 'limegreen', 'gold']
+values = df_total_post['post_birth']
+
+height = 0.9
+plt.barh(y=labels, width=values, height=height, color=df_total_post['franchID'].map(team_colors), align='center', alpha=0.8)
+
+max_value = values.max()
+for i, (label, value) in enumerate(zip(labels, values)):
+    offset_image(value, i, label, bar_is_too_short=value < max_value / 10, ax=plt.gca())
+plt.subplots_adjust(left=0.15)
 
 plt.title('Postseason Births Since 1980')
-plt.xlabel("Team")
-plt.ylabel('Postseason Births')
+plt.ylabel("Team")
+plt.xlabel('Postseason Births')
 plt.xticks(rotation=90)
 plt.show()
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
