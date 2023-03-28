@@ -176,7 +176,7 @@ df_total_post = df_total_post.sort_values(by=["post_birth"], ascending=False)
 
 def offset_image(x, y, label, bar_is_too_short, ax):
     # response = requests.get(f'https://www.countryflags.io/{label}/flat/64.png')
-    file = f"/Users/mhaynam/ds_portfolio/baseball_stat/{label}.png"
+    file = f"/Users/mhaynam/ds_portfolio/baseball_stat/logos/{label}.png"
     img = plt.imread(file)
     im = OffsetImage(img, zoom=0.06)
     im.image.axes = ax
