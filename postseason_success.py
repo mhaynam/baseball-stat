@@ -9,14 +9,16 @@ Created on Wed Mar 15 16:30:43 2023
 # from itertools import product 
 import numpy as np
 import pandas as pd
-from iso3166 import countries
 from sqlalchemy.engine import URL
-# import seaborn as sns
+import seaborn as sns
 import matplotlib.pyplot as plt 
 import matplotlib.image as mpimg
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
-conn = "Driver={ODBC Driver 18 for SQL Server};Server=localhost;Database=master;UID=SA;PWD=####;TrustServerCertificate=yes;"
+import requests
+from bs4 import BeautifulSoup
+
+conn = "Driver={ODBC Driver 18 for SQL Server};Server=localhost;Database=master;UID=SA;PWD=SQLServerpw21!;TrustServerCertificate=yes;"
 conn_url = URL.create("mssql+pyodbc", query={"odbc_connect": conn})          
 
 from sqlalchemy import create_engine
@@ -204,6 +206,72 @@ plt.ylabel("Team")
 plt.xlabel('Postseason Births')
 plt.xticks(rotation=90)
 plt.show()
+
+df_log = df[["order_W","order_R","order_AB","order_H","order_2B","order_3B","order_HR","order_BB","order_SO","order_SB","order_CS","order_HBP","order_SF","order_RA","order_ER","order_ERA","order_CG","order_SHO","order_SV","order_IPouts","order_HA","order_HRA","order_BBA","order_SOA","order_E","order_DP","order_FP","order_attendance","post_birth"]]
+feature_cols = ["order_W","order_R","order_AB","order_H","order_2B","order_3B","order_HR","order_BB","order_SO","order_SB","order_CS","order_HBP","order_SF","order_RA","order_ER","order_ERA","order_CG","order_SHO","order_SV","order_IPouts","order_HA","order_HRA","order_BBA","order_SOA","order_E","order_DP","order_FP","order_attendance"]
+X = df_log[feature_cols]
+y = df_log.post_birth
+
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=16)
+
+from sklearn.linear_model import LogisticRegression
+
+#instantiate the model (with default parameters)
+logreg = LogisticRegression(random_state=16, max_iter=200)
+
+#fit the model with data
+logreg.fit(X_train, y_train)
+
+y_pred = logreg.predict(X_test)
+
+from sklearn import metrics
+
+cnf_matrix = metrics.confusion_matrix(y_test, y_pred)
+print(cnf_matrix)
+
+# class_names=[0,1] # name  of classes
+# fig, ax = plt.subplots()
+# tick_marks = np.arange(len(class_names))
+# plt.xticks(tick_marks, class_names)
+# plt.yticks(tick_marks, class_names)
+# # create heatmap
+# sns.heatmap(pd.DataFrame(cnf_matrix), annot=True, cmap="YlGnBu" ,fmt='g')
+# ax.xaxis.set_label_position("top")
+# plt.tight_layout()
+# plt.title('Confusion matrix', y=1.1)
+# plt.ylabel('Actual label')
+# plt.xlabel('Predicted label')
+
+from sklearn.metrics import classification_report
+target_names = ['missed postseason', 'made postseason']
+print(classification_report(y_test, y_pred, target_names=target_names))
+
+y_pred_proba = logreg.predict_proba(X_test)[::,1]
+fpr, tpr, _ = metrics.roc_curve(y_test, y_pred_proba)
+auc = metrics.roc_auc_score(y_test, y_pred_proba)
+plt.plot(fpr,tpr,label="data 1, auc="+str(auc))
+plt.legend(loc=4)
+plt.show()
+
+URL = "https://www.baseball-reference.com/leagues/majors/2023.shtml"
+page = requests.get(URL)
+
+soup = BeautifulSoup(page.text, 'lxml')
+soup
+
+table1 = soup.find('table', id='div_teams_standard_batting')
+print(table1)
+
+# headers = []
+# for i in table1.find_all('th'):
+#  title = i.text
+#  headers.append(title)
+
+# print(headers)
+
+
 
 
 
