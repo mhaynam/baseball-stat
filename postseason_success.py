@@ -18,7 +18,7 @@ from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import requests
 from bs4 import BeautifulSoup
 
-conn = "Driver={ODBC Driver 18 for SQL Server};Server=localhost;Database=master;UID=SA;PWD=SQLServerpw21!;TrustServerCertificate=yes;"
+conn = "Driver={ODBC Driver 18 for SQL Server};Server=localhost;Database=master;UID=SA;PWD=####;TrustServerCertificate=yes;"
 conn_url = URL.create("mssql+pyodbc", query={"odbc_connect": conn})          
 
 from sqlalchemy import create_engine
